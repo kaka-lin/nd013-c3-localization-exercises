@@ -4,11 +4,13 @@
 
 // TODO: assign a value, the difference in distances between x_t and x_{t-1}
 // that maximizes the returned probability of norm_pdf
+//
+// Assign 5.5 or 11.0
+float value = 11.0;
 
-float value = 1.0;  // YOUR VALUE HERE
-
-float parameter = 1.0;  // set as control parameter or observation measurement
-float stdev = 1.0;      // position or observation standard deviation
+// Assign 5.0 or 11.0
+float parameter = 11.0;  // "observation measurement" or "control parameter"
+float stdev = 1.0;       // position or observation standard deviation
 
 int main() {
   float prob = Helpers::normpdf(value, parameter, stdev);
