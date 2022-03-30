@@ -1,2 +1,2 @@
-# Observation Model Probability II
+# Observation Model Probability
 
