@@ -4,7 +4,7 @@ In previous lessons we learned the basis of our filter, tried some example calcu
 
 Sensor observations are provided in a 2D vector where each inner vector represents the sensor observations, in meters, at a time step.
 
-```
+```bash
 {{1,7,12,21}, {0,6,11,20}, {5,10,19}, {4,9,18}, {3,8,17}, {2,7,16},
 {1,6,15}, {0,5,14}, {4,13}, {3,12},{2,11},{1,10},{0,9},{8},{7},{6},{5},
 {4},{3},{2},{1},{0}, {}, {}, {}};

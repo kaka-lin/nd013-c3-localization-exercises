@@ -47,41 +47,23 @@ int main() {
 
   // define observations vector, each inner vector represents a set
   // of observations for a time step
-  vector<vector<float> > sensor_obs{{1, 7, 12, 21},
-                                    {0, 6, 11, 20},
-                                    {5, 10, 19},
-                                    {4, 9, 18},
-                                    {3, 8, 17},
-                                    {2, 7, 16},
-                                    {1, 6, 15},
-                                    {0, 5, 14},
-                                    {4, 13},
-                                    {3, 12},
-                                    {2, 11},
-                                    {1, 10},
-                                    {0, 9},
-                                    {8},
-                                    {7},
-                                    {6},
-                                    {5},
-                                    {4},
-                                    {3},
-                                    {2},
-                                    {1},
-                                    {0},
-                                    {},
-                                    {},
-                                    {}};
+  vector<vector<float> > sensor_obs{{1, 7, 12, 21}, {0, 6, 11, 20}, {5, 10, 19},
+                                    {4, 9, 18}, {3, 8, 17}, {2, 7, 16}, {1, 6, 15},
+                                    {0, 5, 14}, {4, 13}, {3, 12}, {2, 11}, {1, 10},
+                                    {0, 9}, {8}, {7}, {6}, {5}, {4}, {3}, {2}, {1},
+                                    {0}, {}, {}, {}};
 
   /**
    * TODO: initialize priors
    */
+  vector<float> priors = initialize_priors(map_size, landmark_positions,
+                                           position_stdev);
 
   // UNCOMMENT TO SEE THIS STEP OF THE FILTER
   // cout << "-----------PRIORS INIT--------------" << endl;
   // for (int p = 0; p < priors.size(); ++p){
-  // cout << priors[p] << endl;
-  //}
+  //   cout << priors[p] << endl;
+  // }
 
   // initialize posteriors
   vector<float> posteriors(map_size, 0.0);
@@ -105,25 +87,34 @@ int main() {
       observations = {float(distance_max)};
     }
 
-    // step through each pseudo position x (i)
+    // step through each pseudo position x(i)
     for (unsigned int i = 0; i < map_size; ++i) {
       float pseudo_position = float(i);
 
       /**
        * TODO: get the motion model probability for each x position
        */
+      float motion_prob = motion_model(pseudo_position, movement_per_timestep,
+                                       priors, map_size, control_stdev);
 
       /**
        * TODO: get pseudo ranges
        */
+      vector<float> pseudo_ranges =
+          pseudo_range_estimator(landmark_positions, pseudo_position);
 
       /**
        * TODO: get observation probability
        */
+      float observation_prob =
+          observation_model(landmark_positions, observations, pseudo_ranges,
+                          distance_max, observation_stdev);
 
       /**
        * TODO: calculate the ith posterior and pass to posteriors vector
        */
+      posteriors[i] = motion_prob * observation_prob;
+
 
       // UNCOMMENT TO SEE THIS STEP OF THE FILTER
       // cout << motion_prob << "\t" << observation_prob << "\t"
@@ -139,6 +130,7 @@ int main() {
     /**
      * TODO: normalize posteriors (see helpers.h for a helper function)
      */
+    posteriors = Helpers::normalize_vector(posteriors);
 
     // print to stdout
     // cout << posteriors[t] << "\t" << priors[t] << endl;
@@ -149,6 +141,7 @@ int main() {
     /**
      * TODO: update priors
      */
+    priors = posteriors;
 
     // UNCOMMENT TO SEE THIS STEP OF THE FILTER
     // for (int p = 0; p < posteriors.size(); ++p) {
@@ -249,10 +242,8 @@ vector<float> initialize_priors(int map_size, vector<float> landmark_positions,
   float norm_term = landmark_positions.size() * (position_stdev * 2 + 1);
   for (int i = 0; i < landmark_positions.size(); ++i) {
     for (float j = 1; j <= position_stdev; ++j) {
-      priors.at(int(j + landmark_positions[i] + map_size) % map_size) +=
-          1.0 / norm_term;
-      priors.at(int(-j + landmark_positions[i] + map_size) % map_size) +=
-          1.0 / norm_term;
+      priors.at(int(j + landmark_positions[i] + map_size) % map_size) += 1.0 / norm_term;
+      priors.at(int(-j + landmark_positions[i] + map_size) % map_size) += 1.0 / norm_term;
     }
     priors.at(landmark_positions[i]) += 1.0 / norm_term;
   }
