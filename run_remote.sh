@@ -14,7 +14,7 @@ docker run \
     --shm-size="20g" \
     --volume="$PWD:/app/project/" \
     --network=host \
-    project2-dev bash
+    project4-dev bash
 
 # Methods 2: without --network=host
 
