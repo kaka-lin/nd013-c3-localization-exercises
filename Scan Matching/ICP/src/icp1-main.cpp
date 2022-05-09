@@ -16,6 +16,37 @@ Eigen::Matrix4d ICP(PointCloudT::Ptr target, PointCloudT::Ptr source, Pose start
 	Eigen::Matrix4d transformation_matrix = Eigen::Matrix4d::Identity ();
 
 	//TODO: complete the ICP function and return the corrected transform
+  //Part1: Completed ICP function, increase iterations
+
+  // 1. Convert starting pose to transformation matrix
+  Eigen::Matrix4d initTransform = transform2D(startingPose.theta, startingPose.position.x, startingPose.position.y);
+  // 2. Transform Source by starting pose
+  //   pcl::transformPointCloud (#INPUT, #OUTPUT, #TRANSFORM);
+  //     #INPUT `pcl::PointCloud<pcl::PointXYZ>` input point cloud
+  //     #OUTPUT `pcl::PointCloud<pcl::PointXYZ>` output point cloud
+  //     #TRANSFORM `Eigen::Matrix4d` transformation matrix
+  PointCloudT::Ptr transformSource (new PointCloudT);
+  pcl::transformPointCloud (*source, *transformSource, initTransform);
+
+  // 3. Creating PCL ICP and setting ICP Hyper-parameters
+  pcl::console::TicToc time;
+  time.tic ();
+  pcl::IterativeClosestPoint<PointT, PointT> icp;
+  icp.setMaximumIterations (iterations);
+  icp.setInputSource (transformSource);
+  icp.setInputTarget (target);
+  // 4. Transform Source, Target, iterations, then align to get transform
+  PointCloudT::Ptr cloud_icp (new PointCloudT);  // ICP output point cloud
+  icp.align (*cloud_icp); // call align on the icp object
+
+  if (icp.hasConverged ()) {
+  	std::cout << "\nICP has converged, score is " << icp.getFitnessScore () << std::endl;
+  	transformation_matrix = icp.getFinalTransformation ().cast<double>();
+  	// 5. Multiply the transform with starting pose
+    transformation_matrix =  transformation_matrix * initTransform;
+  	return transformation_matrix;
+  }
+  cout << "WARNING: ICP did not converge" << endl;
 
 	return transformation_matrix;
 
@@ -26,7 +57,7 @@ int main(){
 	viewer->setBackgroundColor (0, 0, 0);
 	viewer->addCoordinateSystem (1.0);
 
-	// create a room
+	// create a room: width:10, height:10
 	double lowerX = -5;
 	double upperX = 5;
 	double lowerY = -5;
@@ -42,6 +73,8 @@ int main(){
 	room.push_back(left);
 
 	// create lidar
+  // -> location(0, 0), orientation: 0
+  // -> max range: 100, resolution: 128
 	Lidar lidar(0, 0, 0, 100, 128);
 
 	PointCloudT::Ptr poses (new PointCloudT); 	// ground truth
@@ -61,12 +94,12 @@ int main(){
 	vector<Vect2> movement = {Vect2(0.5,pi/12)};
 
 	// Part 2. TODO: localize after several steps
-	if(false){ // Change to true
+	if(true){ // Change to true
 		movement.push_back(Vect2(0.8, pi/10));
 		movement.push_back(Vect2(1.0, pi/6));
 	}
 	// Part 3. TODO: localize after randomly moving around the whole room
-	if(false){ // Change to true
+	if(true){ // Change to true
 		srand(time(0));
 		for(int i = 0; i < 10; i++){
 			double mag = 0.5 * ((double) rand() / (RAND_MAX)) + 0.5;
@@ -91,15 +124,19 @@ int main(){
 		renderPointCloud(viewer, scan, "scan_"+to_string(count), Color(1,0,0)); // render scan
 
 		// perform localization
-		Eigen::Matrix4d transform = ICP(map, scan, location, 0); //TODO: make the iteration count greater than zero
+    // TODO: make the iteration count greater than zero
+		Eigen::Matrix4d transform = ICP(map, scan, location, 50);
 		Pose estimate = getPose(transform);
 		// TODO: save estimate location and use it as starting pose for ICP next time
-
+    location = estimate;
 		locator->points.push_back(PointT(estimate.position.x, estimate.position.y, 0));
 
 		// view transformed scan
 		// TODO: perform the transformation on the scan using transform from ICP
-		// TODO: render the correct scan
+		PointCloudT::Ptr transformed_scan (new PointCloudT);
+  	pcl::transformPointCloud (*scan, *transformed_scan, transform);
+    // TODO: render the correct scan
+    renderPointCloud(viewer, transformed_scan, "icp_scan_"+to_string(count), Color(0,1,0));
 
 		count++;
 	}
@@ -107,7 +144,7 @@ int main(){
 	// display ground truth poses vs estimated pose
 	renderPointCloud(viewer, poses, "poses", Color(0,1,0), 8);
 	renderPath(viewer, poses, "posePath", Color(0,1,0) );
-	renderPointCloud(viewer, locator, "locator", Color(0,0,1), 6);
+	renderPointCloud(viewer, locator, "locator", Color(0,0,1), 5);
 	renderPath(viewer, locator, "locPath", Color(0,0,1) );
 
 	while (!viewer->wasStopped ())
