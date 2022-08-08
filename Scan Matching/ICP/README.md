@@ -4,16 +4,27 @@ Complete the TODO's in `icp1-main.cpp` as detailed on the previous page.
 
 ## How to compile:
 
-** Make Sure GPU Is Enabled**
+**Make Sure GPU Is Enabled**
 
 from `/home/workspace `:
 
-`cmake .`
+```sh
+$ cmake .
 
-`make`
+$ make
+```
+
+If you using the docker environment that we provided:
+
+```sh
+$ build.sh # at "/root/project/Scan Matching/ICP"
+```
 
 ## How to run:
-`./icp`
+
+```sh
+./icp
+```
 
 Note that any visualizations will appear only the remote desktop; if you work in the workspace IDE you will need to click on the "Desktop" button in the bottom right, and only run the executable from the terminal within the remote desktop to view them.
 
@@ -21,7 +32,7 @@ Note that any visualizations will appear only the remote desktop; if you work in
 
 In this this exercise you will be using ICP to recover the path taken by robot traveling around a room that is only equipped with a single lidar sensor.
 
-The first scan that the robot took from the center is in `blue (target)`. The robot then moves from the center shown by the green line segment and takes a second scan shown in `red (source)`.
+The first scan that the robot took from the center is in `blue (target/reference)`. The robot then moves from the center shown by the green line segment and takes a second scan shown in `red (source)`.
 
 ![](images/icp-intro.png)
 
