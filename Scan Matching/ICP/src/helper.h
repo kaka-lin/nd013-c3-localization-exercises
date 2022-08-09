@@ -10,32 +10,29 @@ using namespace std;
 
 const double pi = M_PI;
 
-struct Point{
+struct Point {
 	double x, y;
 
 	Point()
-		: x(0), y(0){}
+		: x(0), y(0) {}
 
 	Point(double setX, double setY)
-		: x(setX), y(setY){}
+		: x(setX), y(setY) {}
 
-	void Print(){
+	void Print() {
 		cout << "x: " << x << " y: " << y << endl;
 	}
 };
 
-struct Pose{
-
+struct Pose {
 	Point position;
 	double theta;
 
 	Pose(Point setPos, double setTheta)
 		: position(setPos), theta(setTheta) {}
-
 };
 
-struct Vect2{
-
+struct Vect2 {
 	double mag;
 	double theta;
 
@@ -43,14 +40,11 @@ struct Vect2{
 		: mag(setMag), theta(setTheta) {}
 };
 
-struct Color
-{
+struct Color {
+  float r, g, b;
 
-        float r, g, b;
-
-        Color(float setR, float setG, float setB)
-                : r(setR), g(setG), b(setB)
-        {}
+  Color(float setR, float setG, float setB)
+    : r(setR), g(setG), b(setB) {}
 };
 
 Eigen::Matrix4d transform2D(double theta, double xt, double yt);
@@ -60,7 +54,7 @@ void renderPointCloud(pcl::visualization::PCLVisualizer::Ptr& viewer, const pcl:
 void renderRay(pcl::visualization::PCLVisualizer::Ptr& viewer, Point p1, Point p2, std::string name, Color color);
 void renderPath(pcl::visualization::PCLVisualizer::Ptr& viewer, const PointCloudT::Ptr& cloud, std::string name, Color color);
 
-struct LineSegment{
+struct LineSegment {
 	// slope of y component
 	double my;
 	// slope of x component
@@ -119,8 +113,7 @@ struct LineSegment{
 
 };
 
-struct Lidar{
-
+struct Lidar {
 	double x;
 	double y;
 	double theta;
@@ -128,22 +121,19 @@ struct Lidar{
 	int res;
 
 	Lidar(double setX, double setY, double setTheta, double setRange, int setRes)
-		: x(setX), y(setY), theta(setTheta), range(setRange), res(setRes){}
+		: x(setX), y(setY), theta(setTheta), range(setRange), res(setRes) {}
 
-	pcl::PointCloud<pcl::PointXYZ>::Ptr scan(vector<LineSegment> walls){
-
-		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new PointCloudT);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr scan(vector<LineSegment> walls) {
+		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new PointCloudT);
 		double deltaTheta = (2*pi)/double(res);
 		double residue = .1*deltaTheta;
-		for(double angle = theta; angle < theta + 2*pi - residue ; angle += deltaTheta ){
-
+		for (double angle = theta; angle < theta + 2*pi - residue; angle += deltaTheta) {
 			LineSegment ray;
 
 			//cout << "angle " << angle << endl;
 
 			// check if angle is vertical
-			if( ceil(tan(angle-pi/2)*1000)/1000 == 0){
-
+			if (ceil(tan(angle-pi/2)*1000)/1000 == 0) {
 				//cout << "vertical" << endl;
 
 				double yb = sin(angle) * range;
@@ -152,9 +142,7 @@ struct Lidar{
 
 				ray = LineSegment(1, 0, x, minb, maxb);
 
-			}
-			else{
-
+			} else {
 				double m = ceil(tan(angle)*1000)/1000;
 				double b = y - x*m;
 
@@ -167,23 +155,23 @@ struct Lidar{
 
 			double closetDist = range;
 			Point cPoint;
-			for(LineSegment wall : walls){
+			for (LineSegment wall : walls) {
 				Point point;
-				if( ray.Intersect(wall, point) ){
+				if (ray.Intersect(wall, point)) {
 					//cout << "collision" << endl;
 					//ray.Print();
 					//wall.Print();
-					double distance = sqrt( (x - point.x)*(x - point.x) + (y - point.y)*(y - point.y) );
+					double distance = sqrt((x - point.x)*(x - point.x) + (y - point.y)*(y - point.y));
 					//cout << "dis " << distance << endl;
 					//point.Print();
-					if( distance < closetDist){
+					if (distance < closetDist) {
 						closetDist = distance;
 						cPoint = point;
 					}
-
 				}
 			}
-			if( closetDist < range ){
+
+			if (closetDist < range) {
 				// transform to lidars local coordinates
 				//cout << "angle " << angle << endl;
 				//cout << closetDist << endl;
@@ -195,7 +183,7 @@ struct Lidar{
 		return cloud;
 	}
 
-	void Move(double step, double rotate){
+	void Move(double step, double rotate) {
 		theta += rotate;
 		x += step * cos(theta);
 		y += step * sin(theta);

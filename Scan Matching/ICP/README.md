@@ -42,13 +42,6 @@ The end result is shown below with the green scan showing the red scan corrected
 
 ![](images/icp1-corrected.png)
 
-The `blue points and lines (estimated pose)` show the recovered position of the robot from the ICP transform, notice that it's very close with the `ground truth (green points and lines)`.
-
-```
-estimated pose (blue): locator
-ground truth pose (green): poses
-```
-
 ### Condition: Part 2 and 3
 
 This is where you can see `the initial pose is very important for ICP to converge`. If the starting pose used was always the robot's initial pose from the middle of the room then ICP will fail to converge at the last step. So the starting pose always needs to be close to the actual position in order for ICP to work well.
